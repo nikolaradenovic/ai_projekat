@@ -7,7 +7,9 @@ import numpy as np
 
 data_dict = pickle.load(open('./data.pickle', 'rb')) #otvaramo dictionary sa koordinatama landmarkova
 #iz dictonary-a izvlacimo koordinate i labele i pretvaramo ih u nizove
-data = np.asarray(data_dict['data'])
+max_length = 42 #ouput mediapipe hands objekta su 21 landmark * 2 koordinate. Ako modelu proslijedimo vise ili manje od ovoga, program puca
+data = np.asarray([seq[:max_length] + [0.0] * max(0, max_length - len(seq)) for seq in data_dict['data']]) #svaki clan dataseta mora imati niz od 42 elementa. Ako ima vise, krati se na 42 elementa, ako ima manje paduje se do 42
+#data = np.asarray(data_dict['data'])
 labels = np.asarray(data_dict['labels'])
 #razdvajanje dataseta na training (80%) i test (20%). mijesamo podatke i dijelimo ih proporcionalno po labelima
 x_train, x_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, shuffle=True, stratify=labels)

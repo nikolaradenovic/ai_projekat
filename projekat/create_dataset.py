@@ -18,9 +18,9 @@ data = []
 labels = [] #klase
 for dir_ in os.listdir(DATA_DIR): #iteracija svih foldera u ./data
     for img_path in os.listdir(os.path.join(DATA_DIR, dir_)): #iteracija svih slika u dir_
-        data_aux = []
+        data_aux = [] #konacna lista svih landmarkova na slici
 
-        x_ = []
+        x_ = [] 
         y_ = []
 
         img = cv2.imread(os.path.join(DATA_DIR, dir_, img_path)) #trenutnu sliku smijestamo u img promjenljivu
@@ -39,11 +39,11 @@ for dir_ in os.listdir(DATA_DIR): #iteracija svih foldera u ./data
                 for i in range(len(hand_landmarks.landmark)):
                     x = hand_landmarks.landmark[i].x
                     y = hand_landmarks.landmark[i].y
-                    data_aux.append(x - min(x_))
-                    data_aux.append(y - min(y_))
+                    data_aux.append(x - min(x_)) #feature scaling: sprecava da jedan atribut dominira drugima
+                    data_aux.append(y - min(y_)) #i ovako normalizovane vrijednosti se dodaju u data_aux
 
             data.append(data_aux) #u data se dodaje data_aux
-            labels.append(dir_)
+            labels.append(dir_) #labela je naziv foldera
 
 f = open('data.pickle', 'wb')
 pickle.dump({'data': data, 'labels': labels}, f) #data se pridruzuje label i od toga se pravi dictionary 

@@ -22,7 +22,7 @@ while True:
     y_ = []
     ret, frame = cap.read()
     H, W, _ = frame.shape
-    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) #pretvaranhe frejma iz bgr u rgb
+    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) #pretvaranje frejma iz bgr u rgb
     results = hands.process(frame_rgb) #detektovanje landmarkova iz slike
     try: #ako se na slici pojavi vise ili manje od 48 landmarka, program puca. Zbog toga postoji ovaj try/except blok: da bi program samo nastavio
         if results.multi_hand_landmarks: #ako je otkriveno vise landmarka, znaci da je detektovana minimum jedna ruka
@@ -45,31 +45,33 @@ while True:
                 for i in range(len(hand_landmarks.landmark)):
                     x = hand_landmarks.landmark[i].x
                     y = hand_landmarks.landmark[i].y
-                    data_aux.append(x - min(x_))
+                    data_aux.append(x - min(x_)) #dodavanje normalizovanih vrijednosti u data_aux
                     data_aux.append(y - min(y_))
-
+                    
             x1 = int(min(x_) * W) - 10
             y1 = int(min(y_) * H) - 10
 
             x2 = int(max(x_) * W) - 10
             y2 = int(max(y_) * H) - 10
-
-            prediction = model.predict([np.asarray(data_aux)])
+            #print(data_aux)
+            prediction = model.predict([np.asarray(data_aux)]) 
             predicted_character = labels_dict[int(prediction[0])] #prediction je lista od jednog elementa, pa taj element smijestamo u promjenljivu prediction  
-            prediction_probability = model.predict_proba([np.asarray(data_aux)])
-            most_likely_character = str((np.max(prediction_probability))*100) + "%"
+            prediction_probability = model.predict_proba([np.asarray(data_aux)]) #vector vjerovatnoce svih klasa
+            threshold = np.max(prediction_probability)*100 #prag detekcije
+            most_likely_character = str((np.max(prediction_probability))*100) + "%" #sigurnost predikcije
 
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 255), 4) #crtanje pravougaonika na slici
-            cv2.putText(frame, predicted_character, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 0), 3,
-                        cv2.LINE_AA) #prikazivanje predikcije na slici
-            cv2.putText(frame, most_likely_character, (x1+50, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 0), 3,
-                        cv2.LINE_AA) #prikazivanje sigurnosti predikcije na slici
-    
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 255), 4) #crtanje pravougaonika na slici  
+            if threshold > 30: #ako je model barem 30% siguran u svoju predikciju:
+                cv2.putText(frame, predicted_character, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 0), 3,
+                            cv2.LINE_AA) #prikazivanje predikcije na slici
+                cv2.putText(frame, most_likely_character, (x1+50, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 0), 3,
+                            cv2.LINE_AA) #prikazivanje sigurnosti predikcije na slici
+           
     except:
         continue
     
     cv2.imshow('frame', frame) #prikazujemo frame
-    cv2.waitKey(1)
+    cv2.waitKey(1) #refreshujemo ga svake milisekunde
 
 
 cap.release() #oslobadjanje memorije
